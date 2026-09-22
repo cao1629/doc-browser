@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
 const kindOfPrefix = new Map([
@@ -17,6 +17,35 @@ const kindOfPrefix = new Map([
   ["static", "static"],
   ["keyword", "keyword"],
 ]);
+
+const pagesWithMembers = new Set(["struct", "enum", "union", "trait", "traitalias", "type", "primitive"]);
+
+const kindOfAnchor = new Map([
+  ["method", "method"],
+  ["tymethod", "method"],
+  ["associatedconstant", "const"],
+  ["associatedtype", "type"],
+  ["variant", "variant"],
+  ["structfield", "field"],
+]);
+
+const anchorPattern = /<(?:section|span) id="(method|tymethod|associatedconstant|associatedtype|variant|structfield)\.([^"]+)" class="([^"]*)"/g;
+
+function scanMembers(file, parent) {
+  const html = readFileSync(file, "utf8");
+  const members = [];
+  for (const [, prefix, id, className] of html.matchAll(anchorPattern)) {
+    if (className.includes("trait-impl")) continue;
+    const name = id.replace(/-\d+$/, "");
+    members.push({
+      kind: kindOfAnchor.get(prefix),
+      name,
+      path: `${parent.path}::${name}`,
+      href: `${parent.href}#${prefix}.${id}`,
+    });
+  }
+  return members;
+}
 
 export function scanRoot(rootDir) {
   const entries = [];
@@ -38,12 +67,20 @@ export function scanRoot(rootDir) {
       if (!match) continue;
       const kind = kindOfPrefix.get(match[1]);
       if (!kind) continue;
-      entries.push({ kind, name: match[2], path: [...modulePath, match[2]].join("::"), href });
+      const entry = { kind, name: match[2], path: [...modulePath, match[2]].join("::"), href };
+      entries.push(entry);
+      if (pagesWithMembers.has(match[1])) entries.push(...scanMembers(full, entry));
     }
   }
 
   for (const name of readdirSync(rootDir)) {
     if (existsSync(join(rootDir, name, "all.html"))) walk(join(rootDir, name), [name]);
   }
-  return entries;
+  const seen = new Set();
+  return entries.filter((entry) => {
+    const key = `${entry.kind} ${entry.path}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }

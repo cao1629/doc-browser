@@ -28,13 +28,13 @@ Each directory shows up as a toggle above the results.
 
 ## Searching
 
-The query uses fzf syntax. Plain text is a fuzzy match against the full path, so `Result`, `io::Result` and `std::io::Result` all work. `'Vec` matches exactly, `^std` pins the start, `Result$` pins the end, `!arch` leaves something out, and a space means both terms must match.
+The query uses fzf syntax. Plain text is a fuzzy match against the full path, so `Result`, `io::Result` and `std::io::Result` all work, and so do members such as `Vec::push`, `Read::read` or `Option::Some`. `'Vec` matches exactly, `^std` pins the start, `Result$` pins the end, `!arch` leaves something out, and a space means both terms must match.
 
 Arrow keys move through the results and open the page, Enter opens the selected one, Escape clears the query, and Cmd+K or Ctrl+K focuses the search box. The query and the open page are kept in the URL, so a reload or a bookmark brings them back.
 
 ## How it works
 
-The server walks each documentation directory once at startup and indexes every `kind.Name.html` page by its module path; a module's `index.html` is indexed as `mod`. Pages are served untouched from the original directory, so what you read is the rustdoc output itself, including its own theme setting.
+The server walks each documentation directory once at startup and indexes every `kind.Name.html` page by its module path; a module's `index.html` is indexed as `mod`. Pages of structs, enums, unions, traits and primitives are read as well, and their own methods, associated consts and types, enum variants and struct fields are indexed by anchor (`Vec::push` points at `struct.Vec.html#method.push`). Methods that come from trait implementations are left out, since every type would otherwise contribute `clone`, `fmt` and the like. Pages are served untouched from the original directory, so what you read is the rustdoc output itself, including its own theme setting.
 
 ## Development
 

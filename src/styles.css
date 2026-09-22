@@ -177,6 +177,9 @@ code {
 .kind-const { --kind: var(--k-const); }
 .kind-static { --kind: var(--k-static); }
 .kind-keyword { --kind: var(--k-keyword); }
+.kind-method { --kind: var(--k-fn); }
+.kind-variant { --kind: var(--k-type); }
+.kind-field { --kind: var(--k-mod); }
 
 .row .kind {
   color: var(--kind);

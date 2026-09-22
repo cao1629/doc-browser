@@ -148,9 +148,10 @@ export default function App() {
           )}
           {load.status === "ready" && query === "" && (
             <p className="note">
-              Search {total} items from the toolchain docs. Type a name like <code>Result</code> or a path like{" "}
-              <code>std::io::Result</code>. Use <code>'Vec</code> for an exact match, <code>^std</code> to pin the
-              start, and <code>!arch</code> to leave something out. Arrow keys move, Enter opens.
+              Search {total} items from the toolchain docs. Type a name like <code>Result</code>, a path like{" "}
+              <code>std::io::Result</code>, or a method like <code>Vec::push</code>. Use <code>'Vec</code> for an
+              exact match, <code>^std</code> to pin the start, and <code>!arch</code> to leave something out. Arrow
+              keys move, Enter opens.
             </p>
           )}
           {load.status === "ready" && query !== "" && results.length === 0 && (

@@ -9,7 +9,10 @@ export type Kind =
   | "const"
   | "static"
   | "keyword"
-  | "mod";
+  | "mod"
+  | "method"
+  | "variant"
+  | "field";
 
 export interface Entry {
   kind: Kind;
