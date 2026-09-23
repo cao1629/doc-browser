@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { listedCrates } from "./crates.mjs";
+import { docsetRoots, scanDocset } from "./docsets.mjs";
 import { scanRoot } from "./scan.mjs";
 
 const port = Number(process.env.PORT) || 3000;
@@ -68,8 +69,9 @@ function serveWithLocalLinks(dir, rewrite) {
 }
 
 const roots = [
-  { label: "std", dir: stdDocsDir() },
+  { label: "Rust std", dir: stdDocsDir() },
   ...crateRoots(),
+  ...docsetRoots(join(here, "..")),
   ...process.argv.slice(2).map((arg) => {
     const dir = resolve(arg);
     return { label: labelFor(dir), dir };
@@ -83,7 +85,9 @@ for (const root of roots) {
 }
 
 const started = Date.now();
-const entries = roots.flatMap((root, i) => scanRoot(root.dir, root.crates).map((entry) => ({ ...entry, root: i })));
+const entries = roots.flatMap((root, i) =>
+  (root.docsetIndex ? scanDocset(root.docsetIndex) : scanRoot(root.dir, root.crates)).map((entry) => ({ ...entry, root: i })),
+);
 console.log(`indexed ${entries.length} items from ${roots.length} root(s) in ${Date.now() - started} ms`);
 const indexJson = JSON.stringify({ roots, entries });
 
@@ -93,7 +97,7 @@ app.get("/api/index", (_req, res) => {
 });
 const rewriteLinks = localLinkRewriter(roots[0].dir);
 roots.forEach((root, i) => {
-  if (i > 0) app.use(`/docs/${i}`, serveWithLocalLinks(root.dir, rewriteLinks));
+  if (i > 0 && !root.docsetIndex) app.use(`/docs/${i}`, serveWithLocalLinks(root.dir, rewriteLinks));
   app.use(`/docs/${i}`, express.static(root.dir));
 });
 
