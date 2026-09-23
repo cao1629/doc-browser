@@ -2,7 +2,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, ty
 import { DocFrame } from "./DocFrame";
 import { ResultList } from "./ResultList";
 import { RESULT_LIMIT, createSearch } from "./search";
-import { docUrl, type DocIndex, type Entry } from "./types";
+import { docUrl, type DocIndex, type Entry, type IndexResponse } from "./types";
 
 type LoadState =
   | { status: "loading" }
@@ -26,13 +26,23 @@ export default function App() {
   const [docSrc, setDocSrc] = useState<string | null>(initialDoc);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const focusSearch = useCallback(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
   useEffect(() => {
     fetch("/api/index")
       .then((response) => {
         if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-        return response.json() as Promise<DocIndex>;
+        return response.json() as Promise<IndexResponse>;
       })
-      .then((index) => setLoad({ status: "ready", index }))
+      .then((index) =>
+        setLoad({
+          status: "ready",
+          index: { roots: index.roots, entries: index.entries.map((entry, id) => ({ ...entry, id })) },
+        }),
+      )
       .catch((error: unknown) =>
         setLoad({ status: "error", message: error instanceof Error ? error.message : String(error) }),
       );
@@ -62,13 +72,12 @@ export default function App() {
     function onKeyDown(event: globalThis.KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {
         event.preventDefault();
-        inputRef.current?.focus();
-        inputRef.current?.select();
+        focusSearch();
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [focusSearch]);
 
   const open = useCallback((entry: Entry) => setDocSrc(docUrl(entry)), []);
 
@@ -97,6 +106,7 @@ export default function App() {
       else next.add(index);
       return next;
     });
+    inputRef.current?.focus();
   }
 
   const total = entries.length.toLocaleString();
@@ -133,6 +143,7 @@ export default function App() {
                 className={hiddenRoots.has(index) ? "root off" : "root"}
                 aria-pressed={!hiddenRoots.has(index)}
                 title={root.dir}
+                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => toggleRoot(index)}
               >
                 {root.label}
@@ -166,6 +177,7 @@ export default function App() {
               onSelect={(index) => {
                 setSelected(index);
                 open(results[index].item);
+                inputRef.current?.focus();
               }}
             />
           )}
@@ -173,7 +185,7 @@ export default function App() {
         <footer className="status">{status}</footer>
       </aside>
       <main className="doc">
-        <DocFrame src={docSrc} />
+        <DocFrame src={docSrc} onSearchShortcut={focusSearch} />
       </main>
     </div>
   );

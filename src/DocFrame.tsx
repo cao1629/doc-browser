@@ -5,7 +5,7 @@ interface Page {
   title: string;
 }
 
-export function DocFrame({ src }: { src: string | null }) {
+export function DocFrame({ src, onSearchShortcut }: { src: string | null; onSearchShortcut: () => void }) {
   const [page, setPage] = useState<Page | null>(null);
 
   if (src === null) {
@@ -20,6 +20,12 @@ export function DocFrame({ src }: { src: string | null }) {
     const frame = event.currentTarget.contentWindow;
     if (!frame) return;
     setPage({ url: frame.location.pathname + frame.location.hash, title: frame.document.title });
+    frame.addEventListener("keydown", (keyEvent) => {
+      if ((keyEvent.metaKey || keyEvent.ctrlKey) && keyEvent.key === "k") {
+        keyEvent.preventDefault();
+        onSearchShortcut();
+      }
+    });
   }
 
   return (

@@ -50,12 +50,20 @@ function readIndex(file) {
 }
 
 export function scanDocset(indexFile) {
-  return readIndex(indexFile).map((row) => ({
-    kind: kindOfType.get(row.type) ?? row.type.toLowerCase(),
-    name: lastSegment(row.name),
-    path: row.name,
-    href: row.path.replace(/<dash_[^>]*>/g, ""),
-  }));
+  const seen = new Set();
+  return readIndex(indexFile)
+    .map((row) => ({
+      kind: kindOfType.get(row.type) ?? row.type.toLowerCase(),
+      name: lastSegment(row.name),
+      path: row.name,
+      href: row.path.replace(/<dash_[^>]*>/g, ""),
+    }))
+    .filter((entry) => {
+      const key = `${entry.kind} ${entry.path} ${entry.href}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 export function docsetRoots(projectDir) {
