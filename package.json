@@ -7,7 +7,9 @@
     "dev": "concurrently -k -n server,vite \"node server/index.mjs\" \"vite\"",
     "build": "tsc --noEmit && vite build",
     "start": "node server/index.mjs",
-    "docs": "cargo doc --manifest-path crates/Cargo.toml"
+    "docs": "npm run docs:crates && npm run docs:docsets",
+    "docs:crates": "cargo doc --manifest-path crates/Cargo.toml",
+    "docs:docsets": "node --use-env-proxy scripts/fetch-docsets.mjs"
   },
   "dependencies": {
     "express": "^5.2.1",

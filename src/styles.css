@@ -148,7 +148,7 @@ code {
 
 .row {
   display: grid;
-  grid-template-columns: 7ch minmax(0, 1fr);
+  grid-template-columns: 9ch minmax(0, 1fr);
   gap: 8px;
   padding: 3px 12px 3px 9px;
   border-left: 3px solid transparent;
@@ -180,6 +180,16 @@ code {
 .kind-method { --kind: var(--k-fn); }
 .kind-variant { --kind: var(--k-type); }
 .kind-field { --kind: var(--k-mod); }
+.kind-class { --kind: var(--k-struct); }
+.kind-tag { --kind: var(--k-type); }
+.kind-function { --kind: var(--k-fn); }
+.kind-operator { --kind: var(--k-fn); }
+.kind-header { --kind: var(--k-mod); }
+.kind-guide { --kind: var(--k-mod); }
+.kind-attribute { --kind: var(--k-macro); }
+.kind-directive { --kind: var(--k-macro); }
+.kind-variable { --kind: var(--k-const); }
+.kind-property { --kind: var(--k-const); }
 
 .row .kind {
   color: var(--kind);
@@ -200,6 +210,9 @@ code {
 
 .name {
   flex: none;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 600;
 }
 

@@ -118,8 +118,8 @@ export default function App() {
           autoFocus
           spellCheck={false}
           autoComplete="off"
-          placeholder="Search Rust docs"
-          aria-label="Search Rust docs"
+          placeholder="Search docs"
+          aria-label="Search docs"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={onInputKeyDown}
@@ -149,10 +149,11 @@ export default function App() {
           )}
           {load.status === "ready" && query === "" && (
             <p className="note">
-              Search {total} items from {sources}. Type a name like <code>Result</code>, a path like{" "}
-              <code>std::io::Result</code>, or a method like <code>Vec::push</code>. Use <code>'Vec</code> for an
-              exact match, <code>^std</code> to pin the start, and <code>!arch</code> to leave something out. Arrow
-              keys move, Enter opens.
+              Search {total} items from {sources}. Type a name like <code>Result</code> or{" "}
+              <code>unique_ptr</code>, a path like <code>std::io::Result</code>, or a method like{" "}
+              <code>Vec::push</code> or <code>vector::push_back</code>. Use <code>'Vec</code> for an exact match,{" "}
+              <code>^std</code> to pin the start, and <code>!arch</code> to leave something out. Arrow keys move,
+              Enter opens.
             </p>
           )}
           {load.status === "ready" && query !== "" && results.length === 0 && (

@@ -12,7 +12,17 @@ export type Kind =
   | "mod"
   | "method"
   | "variant"
-  | "field";
+  | "field"
+  | "class"
+  | "function"
+  | "operator"
+  | "header"
+  | "guide"
+  | "tag"
+  | "attribute"
+  | "directive"
+  | "variable"
+  | "property";
 
 export interface Entry {
   kind: Kind;

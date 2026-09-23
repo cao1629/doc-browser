@@ -53,6 +53,7 @@ export function ResultList({
             role="option"
             aria-selected={index === selected}
             className={`row kind-${kind}${index === selected ? " selected" : ""}`}
+            title={path}
             onClick={() => onSelect(index)}
           >
             <span className="kind">{kind}</span>
