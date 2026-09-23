@@ -1,4 +1,4 @@
-# rust-doc-browser
+# doc-browser
 
 A local, offline browser for Rust documentation in the spirit of Dash: a fuzzy search box on the left, the rustdoc page on the right.
 
