@@ -11,20 +11,39 @@ A local, offline browser for Rust documentation in the spirit of Dash: a fuzzy s
 
 ```sh
 npm install
+npm run docs
 npm run build
 npm start
 ```
 
-Then open http://localhost:3000. Set `PORT` to use another port.
+Then open http://localhost:3000. Set `PORT` to use another port. `npm run docs` builds the docs for the crates listed in `crates/Cargo.toml`. The first run downloads them, and later runs take a few seconds.
 
-To search a project's dependencies as well, generate their docs and pass the output directory:
+## Adding crates
+
+Besides std, the app searches the crates listed as dependencies in `crates/Cargo.toml`. tokio is listed by default:
+
+```toml
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+```
+
+To add another crate, list it there, then rebuild the docs and restart the server:
+
+```sh
+npm run docs
+npm start
+```
+
+`npm run docs` runs `cargo doc`, which also documents the dependencies of the listed crates, so a link from tokio to `bytes::BufMut` opens locally. Only the listed crates are searched, and each one gets its own toggle above the results. Links to std, core and the Rust books open the local toolchain docs instead of doc.rust-lang.org.
+
+To search everything a project depends on, generate its docs and pass the output directory:
 
 ```sh
 cargo doc --manifest-path path/to/project/Cargo.toml
 npm start -- path/to/project/target/doc
 ```
 
-Each directory shows up as a toggle above the results.
+That directory shows up as one more toggle.
 
 ## Searching
 
@@ -34,7 +53,9 @@ Arrow keys move through the results and open the page, Enter opens the selected 
 
 ## How it works
 
-The server walks each documentation directory once at startup and indexes every `kind.Name.html` page by its module path; a module's `index.html` is indexed as `mod`. Pages of structs, enums, unions, traits and primitives are read as well, and their own methods, associated consts and types, enum variants and struct fields are indexed by anchor (`Vec::push` points at `struct.Vec.html#method.push`). Methods that come from trait implementations are left out, since every type would otherwise contribute `clone`, `fmt` and the like. Pages are served untouched from the original directory, so what you read is the rustdoc output itself, including its own theme setting.
+The server builds the index once at startup. For each crate it reads `all.html`, which lists every item at its public path, and adds the modules and keyword pages. Redirect pages that rustdoc leaves at private paths are skipped, so each item appears once. Pages of structs, enums, unions, traits, type aliases and primitives are read as well, and their own methods, associated consts and types, enum variants and struct fields are indexed by anchor (`Vec::push` points at `struct.Vec.html#method.push`). Methods that come from trait implementations are left out, since every type would otherwise contribute `clone`, `fmt` and the like.
+
+What you read is the rustdoc output itself, including its own theme setting. std pages are served untouched. Pages of other crates are served with each doc.rust-lang.org link pointed at the local toolchain docs whenever the linked file exists there.
 
 ## Development
 
