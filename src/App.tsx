@@ -100,6 +100,7 @@ export default function App() {
   }
 
   const total = entries.length.toLocaleString();
+  const sources = new Intl.ListFormat("en").format(roots.map((root) => root.label));
   const status =
     load.status !== "ready"
       ? ""
@@ -148,7 +149,7 @@ export default function App() {
           )}
           {load.status === "ready" && query === "" && (
             <p className="note">
-              Search {total} items from the toolchain docs. Type a name like <code>Result</code>, a path like{" "}
+              Search {total} items from {sources}. Type a name like <code>Result</code>, a path like{" "}
               <code>std::io::Result</code>, or a method like <code>Vec::push</code>. Use <code>'Vec</code> for an
               exact match, <code>^std</code> to pin the start, and <code>!arch</code> to leave something out. Arrow
               keys move, Enter opens.

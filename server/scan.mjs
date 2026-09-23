@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join, relative, sep } from "node:path";
+import { join } from "node:path";
 
 const kindOfPrefix = new Map([
   ["struct", "struct"],
@@ -30,6 +30,12 @@ const kindOfAnchor = new Map([
 ]);
 
 const anchorPattern = /<(?:section|span) id="(method|tymethod|associatedconstant|associatedtype|variant|structfield)\.([^"]+)" class="([^"]*)"/g;
+const allItemsLink = /<li><a href="([^"]+)">([^<]+)<\/a><\/li>/g;
+const itemFile = /^([a-z]+)\.(.+)\.html$/;
+
+function isRedirect(file) {
+  return readFileSync(file, "utf8").includes("<title>Redirection</title>");
+}
 
 function scanMembers(file, parent) {
   const html = readFileSync(file, "utf8");
@@ -47,40 +53,60 @@ function scanMembers(file, parent) {
   return members;
 }
 
-export function scanRoot(rootDir) {
-  const entries = [];
+function scanModules(rootDir, crate) {
+  const modules = [];
 
-  function walk(dir, modulePath) {
+  function walk(modulePath) {
+    const dir = join(rootDir, ...modulePath);
+    const index = join(dir, "index.html");
+    if (existsSync(index) && !isRedirect(index)) {
+      modules.push({
+        kind: "mod",
+        name: modulePath[modulePath.length - 1],
+        path: modulePath.join("::"),
+        href: [...modulePath, "index.html"].join("/"),
+      });
+    }
     for (const dirent of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, dirent.name);
-      if (dirent.isDirectory()) {
-        walk(full, [...modulePath, dirent.name]);
-        continue;
-      }
-      if (!dirent.name.endsWith(".html")) continue;
-      const href = relative(rootDir, full).split(sep).join("/");
-      if (dirent.name === "index.html") {
-        entries.push({ kind: "mod", name: modulePath[modulePath.length - 1], path: modulePath.join("::"), href });
-        continue;
-      }
-      const match = /^([a-z]+)\.(.+)\.html$/.exec(dirent.name);
-      if (!match) continue;
-      const kind = kindOfPrefix.get(match[1]);
-      if (!kind) continue;
-      const entry = { kind, name: match[2], path: [...modulePath, match[2]].join("::"), href };
-      entries.push(entry);
-      if (pagesWithMembers.has(match[1])) entries.push(...scanMembers(full, entry));
+      if (dirent.isDirectory()) walk([...modulePath, dirent.name]);
     }
   }
 
-  for (const name of readdirSync(rootDir)) {
-    if (existsSync(join(rootDir, name, "all.html"))) walk(join(rootDir, name), [name]);
+  walk([crate]);
+  return modules;
+}
+
+function itemLinks(rootDir, crate) {
+  const allItems = readFileSync(join(rootDir, crate, "all.html"), "utf8");
+  const listed = [...allItems.matchAll(allItemsLink)].map(([, href, text]) => ({ href, path: `${crate}::${text}` }));
+  const keywords = readdirSync(join(rootDir, crate))
+    .filter((file) => file.startsWith("keyword."))
+    .map((file) => ({ href: file, path: `${crate}::${file.slice("keyword.".length, -".html".length)}` }));
+  return [...listed, ...keywords];
+}
+
+function scanCrate(rootDir, crate) {
+  const entries = scanModules(rootDir, crate);
+  for (const link of itemLinks(rootDir, crate)) {
+    const match = itemFile.exec(link.href.slice(link.href.lastIndexOf("/") + 1));
+    const kind = match && kindOfPrefix.get(match[1]);
+    if (!kind) continue;
+    const entry = { kind, name: match[2], path: link.path, href: `${crate}/${link.href}` };
+    entries.push(entry);
+    if (pagesWithMembers.has(match[1])) entries.push(...scanMembers(join(rootDir, crate, link.href), entry));
   }
+  return entries;
+}
+
+export function scanRoot(rootDir, crates) {
+  const names = crates ?? readdirSync(rootDir).filter((name) => existsSync(join(rootDir, name, "all.html")));
   const seen = new Set();
-  return entries.filter((entry) => {
-    const key = `${entry.kind} ${entry.path}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  return names
+    .flatMap((crate) => scanCrate(rootDir, crate))
+    .filter((entry) => {
+      const key = `${entry.kind} ${entry.path}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }

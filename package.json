@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "concurrently -k -n server,vite \"node server/index.mjs\" \"vite\"",
     "build": "tsc --noEmit && vite build",
-    "start": "node server/index.mjs"
+    "start": "node server/index.mjs",
+    "docs": "cargo doc --manifest-path crates/Cargo.toml"
   },
   "dependencies": {
     "express": "^5.2.1",
