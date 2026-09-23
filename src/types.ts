@@ -25,6 +25,7 @@ export type Kind =
   | "property";
 
 export interface Entry {
+  id: number;
   kind: Kind;
   name: string;
   path: string;
@@ -40,6 +41,11 @@ export interface DocRoot {
 export interface DocIndex {
   roots: DocRoot[];
   entries: Entry[];
+}
+
+export interface IndexResponse {
+  roots: DocRoot[];
+  entries: Omit<Entry, "id">[];
 }
 
 export function docUrl(entry: Entry): string {

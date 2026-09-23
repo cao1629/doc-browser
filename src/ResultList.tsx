@@ -45,15 +45,16 @@ export function ResultList({
   return (
     <ul ref={listRef} className="results" role="listbox" aria-label="Results">
       {results.map((result, index) => {
-        const { path, name, kind, root, href } = result.item;
+        const { id, path, name, kind } = result.item;
         const nameStart = path.length - name.length;
         return (
           <li
-            key={`${root}/${href}`}
+            key={id}
             role="option"
             aria-selected={index === selected}
             className={`row kind-${kind}${index === selected ? " selected" : ""}`}
             title={path}
+            onMouseDown={(event) => event.preventDefault()}
             onClick={() => onSelect(index)}
           >
             <span className="kind">{kind}</span>
