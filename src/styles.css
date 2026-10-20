@@ -190,6 +190,8 @@ code {
 .kind-directive { --kind: var(--k-macro); }
 .kind-variable { --kind: var(--k-const); }
 .kind-property { --kind: var(--k-const); }
+.kind-event { --kind: var(--k-const); }
+.kind-section { --kind: var(--k-mod); }
 
 .row .kind {
   color: var(--kind);

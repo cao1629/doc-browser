@@ -22,7 +22,9 @@ export type Kind =
   | "attribute"
   | "directive"
   | "variable"
-  | "property";
+  | "property"
+  | "event"
+  | "section";
 
 export interface Entry {
   id: number;

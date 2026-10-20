@@ -7,6 +7,7 @@ const kindOfType = new Map([
   ["clm", "method"],
   ["instm", "method"],
   ["intfm", "method"],
+  ["Constructor", "method"],
   ["func", "function"],
   ["tdef", "type"],
   ["clconst", "const"],
@@ -26,6 +27,8 @@ const appleIndexQuery = `
   join ztokentype y on t.ztokentype = y.z_pk`;
 
 function lastSegment(title) {
+  const member = /^[\w$]+(?:\.[\w$]+)+(?=\(|$)/.exec(title);
+  if (member) return title.slice(member[0].lastIndexOf(".") + 1);
   let depth = 0;
   let start = 0;
   for (let i = 0; i < title.length; i++) {
