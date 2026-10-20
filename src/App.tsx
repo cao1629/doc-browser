@@ -149,9 +149,9 @@ export default function App() {
           )}
           {load.status === "ready" && query === "" && (
             <p className="note">
-              Search {total} items from {sources}. Type a name like <code>Result</code> or{" "}
-              <code>unique_ptr</code>, a path like <code>std::io::Result</code>, or a method like{" "}
-              <code>Vec::push</code> or <code>vector::push_back</code>. Use <code>'Vec</code> for an exact match,{" "}
+              Search {total} items from {sources}. Type a name like <code>Result</code>, <code>unique_ptr</code> or{" "}
+              <code>Promise</code>, a path like <code>std::io::Result</code>, or a method like <code>Vec::push</code>,{" "}
+              <code>vector::push_back</code> or <code>Array.map</code>. Use <code>'Vec</code> for an exact match,{" "}
               <code>^std</code> to pin the start, and <code>!arch</code> to leave something out. Arrow keys move,
               Enter opens.
             </p>

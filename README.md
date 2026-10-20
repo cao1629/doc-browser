@@ -1,6 +1,6 @@
 # doc-browser
 
-A local, offline documentation browser in the spirit of Dash: a fuzzy search box on the left, the documentation page on the right. Out of the box it searches the Rust standard library, tokio and the C++ reference from cppreference.com.
+A local, offline documentation browser in the spirit of Dash: a fuzzy search box on the left, the documentation page on the right. Out of the box it searches the Rust standard library, tokio, the C++ reference from cppreference.com, the JavaScript and Web API reference from MDN, and the TypeScript handbook.
 
 ## Requirements
 
@@ -18,7 +18,7 @@ npm start
 
 Then open http://localhost:3000. Set `PORT` to use another port.
 
-`npm run docs` builds the docs for the Rust crates listed in `crates/Cargo.toml` and downloads the Dash docsets listed in `docsets.json`. The C++ docset is a 173 MB download and takes about 630 MB on disk. Later runs rebuild the crate docs in a few seconds and download a docset again only when a new version is out.
+`npm run docs` builds the docs for the Rust crates listed in `crates/Cargo.toml` and downloads the Dash docsets listed in `docsets.json`. The three docsets are a 528 MB download and take about 2.3 GB on disk, 1.6 GB of it for JavaScript. Later runs rebuild the crate docs in a few seconds and download a docset again only when a new version is out.
 
 ## Adding Rust crates
 
@@ -49,11 +49,13 @@ That directory shows up as one more toggle.
 
 ## Adding docsets
 
-`docsets.json` lists the Dash docsets to download, by the name Dash uses for the docset's download feed. C++ is listed by default:
+`docsets.json` lists the Dash docsets to download, by the name Dash uses for the docset's download feed. C++, JavaScript and TypeScript are listed by default:
 
 ```json
 [
-  "C++"
+  "C++",
+  "JavaScript",
+  "TypeScript"
 ]
 ```
 
@@ -64,11 +66,13 @@ npm run docs:docsets
 npm start
 ```
 
+To leave a docset out, remove its name and delete its directory under `docsets/` to free the space.
+
 The script reads the feed at `https://kapeli.com/feeds/<name>.xml`, downloads the archive from the mirror that answers fastest, and unpacks it into `docsets/`. Each docset gets its own toggle above the results.
 
 ## Searching
 
-The query uses fzf syntax. Plain text is a fuzzy match against the full path, so `Result`, `io::Result` and `std::io::Result` all work, and so do members such as `Vec::push`, `Read::read` or `Option::Some`. C++ entries are matched against their cppreference titles, so `vector push_back` finds `std::vector<T, Allocator>::push_back`, and `static_cast` finds both the keyword and the conversion page. `'Vec` matches exactly, `^std` pins the start, `Result$` pins the end, `!arch` leaves something out, and a space means both terms must match.
+The query uses fzf syntax. Plain text is a fuzzy match against the full path, so `Result`, `io::Result` and `std::io::Result` all work, and so do members such as `Vec::push`, `Read::read` or `Option::Some`. C++ entries are matched against their cppreference titles, so `vector push_back` finds `std::vector<T, Allocator>::push_back`, and `static_cast` finds both the keyword and the conversion page. JavaScript entries carry MDN's names, so `Array.map` finds `Array.prototype.map`, `Window.resize` finds the resize event, and `if...else` finds the statement. TypeScript entries are the handbook's pages and their sections, so `keyof` finds Keyof Type Operator and `Partial<` finds the `Partial<Type>` section of Utility Types. `'Vec` matches exactly, `^std` pins the start, `Result$` pins the end, `!arch` leaves something out, and a space means both terms must match.
 
 Arrow keys move through the results and open the page, Enter opens the selected one, Escape clears the query, and Cmd+K or Ctrl+K focuses the search box. The query and the open page are kept in the URL, so a reload or a bookmark brings them back.
 
@@ -76,7 +80,7 @@ Arrow keys move through the results and open the page, Enter opens the selected 
 
 The server builds the index once at startup. For each Rust crate it reads `all.html`, which lists every item at its public path, and adds the modules and keyword pages. Redirect pages that rustdoc leaves at private paths are skipped, so each item appears once. Pages of structs, enums, unions, traits, type aliases and primitives are read as well, and their own methods, associated consts and types, enum variants and struct fields are indexed by anchor (`Vec::push` points at `struct.Vec.html#method.push`). Methods that come from trait implementations are left out, since every type would otherwise contribute `clone`, `fmt` and the like.
 
-A docset is indexed from its `docSet.dsidx` SQLite file through `node:sqlite`. Both index layouts that Dash docsets use are read: the plain `searchIndex` table, and the Core Data tables of Apple-style docsets such as C++.
+A docset is indexed from its `docSet.dsidx` SQLite file through `node:sqlite`. Both index layouts that Dash docsets use are read: the plain `searchIndex` table, and the Core Data tables of Apple-style docsets such as C++ and JavaScript.
 
 What you read is the original page, including rustdoc's own theme setting. std pages and docset pages are served untouched. Pages of other Rust crates are served with each doc.rust-lang.org link pointed at the local toolchain docs whenever the linked file exists there.
 
